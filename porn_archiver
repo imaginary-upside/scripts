@@ -1,0 +1,57 @@
+#!/usr/bin/env fish
+
+##
+# Porn Archiver - Backups porn from many different websites.
+# Copyright (C) 2020 imaginary-upside
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+##
+# Requirements:
+# * gallery-dl
+# * ripgrep
+#
+# Arguments:
+# * --out-dir directory to store archives in
+# * --config newline seperated list of urls to scrape
+
+argparse 'o/out-dir=' 'c/config=' -- $argv
+
+# set default values
+set -q _flag_out_dir; or set -l _flag_out_dir .
+
+function download --argument regex service url out_dir
+  set -l username (echo $url | rg -r '$1' -o $regex)
+
+  gallery-dl \
+    --mtime-from-date \
+    --dest $out_dir/$service/$username $url
+end
+
+for url in (cat $_flag_config)
+  switch $url
+  case '*reddit.com*'
+    set regex '(?:user|u)/(\w+)$'
+    set service reddit
+  case '*exhentai.org*'
+    # just need to set regex to something so username doesn't fuck up
+    set regex '.+'
+    set service exhentai
+  case '*twitter.com*'
+    set regex '/(\w+)$'
+    set service twitter
+  end
+
+  download $regex $service $url $_flag_out_dir
+end
