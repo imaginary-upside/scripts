@@ -29,7 +29,7 @@
 argparse 'o/out-dir=' 'c/config=' -- $argv
 
 # set default values
-set -q _flag_out_dir; or set -l _flag_out_dir .
+set -q _flag_out_dir; or set -l _flag_out_dir archive
 
 function download --argument regex service url out_dir
   set -l username (echo $url | rg -r '$1' -o $regex)
